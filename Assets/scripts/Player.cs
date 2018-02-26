@@ -100,9 +100,17 @@ public class Player {
     }
 
     public int WinnerOfRound (Player p) {
-        if (this.word.Length > p.word.Length) {
+        if (this.HasValidWord() && p.HasValidWord()) {
+            if (this.word.Length > p.word.Length) {
+                return 1;
+            } else if (this.word.Length < p.word.Length) {
+                return 2;
+            } else {
+                return 0;
+            }
+        } else if (this.HasValidWord()) {
             return 1;
-        } else if (this.word.Length < p.word.Length) {
+        } else if (p.HasValidWord()) {
             return 2;
         } else {
             return 0;
@@ -129,7 +137,7 @@ public class Player {
     }
 
     public bool HasValidWord () {
-        return Array.BinarySearch(words, word) < 0;
+        return Array.BinarySearch(words, word) >= 0;
     }
 
     public bool CanAddLetter (string letter) {
