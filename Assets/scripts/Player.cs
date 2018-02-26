@@ -11,12 +11,14 @@ using UnityEditor;
 public class Player {
 
     private string word;
+    private int score;
     private string[] pos_letters;
     private float[] letter_freqs;
     private float total_freq;
     private string[] words;
     public bool played;
     public string[] letters;
+    private bool[] lettersUsed;
 
 
     public Player (string[] pos_letters, float[] letter_freqs, float total_freq, string[] words) {
@@ -27,10 +29,30 @@ public class Player {
         this.words = words;
         this.played = false;
 
-        letters = GetNewLetters(new string[20], new bool[20]);
+        lettersUsed = new bool[20];
+        for (int i = 0; i < 20; i++) {
+            lettersUsed[i] = true;
+        }
+        letters = new string[20];
+
+        GetNewLetters();
+        lettersUsed = new bool[20];
         word = "";
+        score = 0;
 
 
+    }
+
+    public int GetScore () {
+        return score;
+    }
+
+    public void IncrementScore () {
+        score += 1;
+    }
+
+    public void ResetScore() {
+        score = 0;
     }
 
     public string GetWord () {
@@ -39,19 +61,45 @@ public class Player {
 
     public void ResetWord () {
         word = "";
+        lettersUsed = new bool[20];
     }
 
-    public void AddLetter (string letter) {
+    public void ResetLetters () {
+        GetNewLetters();
+
+    }
+
+    public int AddLetter (string letter) {
         word = word + letter;
-    }
 
-    public void RemoveLastLetter () {
-        if (word.Length > 0) {
-            word = word.Substring(0, word.Length - 1);
+        int i = 0;
+        foreach (string l in letters) {
+            if (letter.Equals(l) && !lettersUsed[i]) {
+                lettersUsed[i] = true;
+                return i;
+            }
+            i += 1;
         }
+        return -1;
     }
 
-    public int Winner (Player p) {
+    public int RemoveLastLetter () {
+        if (word.Length > 0) {
+
+            int i = 0;
+            foreach (string l in letters) {
+                if (word[word.Length - 1].ToString().Equals(l) && lettersUsed[i]) {
+                    lettersUsed[i] = false;
+                    word = word.Substring(0, word.Length - 1);
+                    return i;
+                }
+                i += 1;
+            }
+        }
+        return -1;
+    }
+
+    public int WinnerOfRound (Player p) {
         if (this.word.Length > p.word.Length) {
             return 1;
         } else if (this.word.Length < p.word.Length) {
@@ -61,10 +109,10 @@ public class Player {
         }
     }
 
-    public string[] GetNewLetters (string[] ls, bool[] change) {
+    public void GetNewLetters () {
         Random r = new Random();
         for (int i = 0; i < 20; i++) {
-            if (!change[i]) {
+            if (lettersUsed[i]) {
                 double randomValue = r.NextDouble();
 
                 double cumulative = 0.0;
@@ -72,13 +120,12 @@ public class Player {
                 {
                     cumulative += letter_freqs[j] / total_freq;
                     if (randomValue < cumulative) {
-                        ls[i] = pos_letters[j];
+                        letters[i] = pos_letters[j];
                         break;
                     }
                 }
             }
         }
-        return ls;
     }
 
     public bool HasValidWord () {
