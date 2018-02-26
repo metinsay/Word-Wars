@@ -2,10 +2,9 @@ using System;
 using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
-using Random=System.Random;
 using UnityEngine;
 using UnityEditor;
-
+using Random=System.Random;
 
 
 public class Player {
@@ -19,15 +18,16 @@ public class Player {
     public bool played;
     public string[] letters;
     private bool[] lettersUsed;
+	private Random r;
 
-
-    public Player (string[] pos_letters, float[] letter_freqs, float total_freq, string[] words) {
+	public Player (string[] pos_letters, float[] letter_freqs, float total_freq, string[] words, Random r) {
 
         this.pos_letters = pos_letters;
         this.letter_freqs = letter_freqs;
         this.total_freq = total_freq;
         this.words = words;
         this.played = false;
+		this.r = r;
 
         lettersUsed = new bool[20];
         for (int i = 0; i < 20; i++) {
@@ -118,7 +118,7 @@ public class Player {
     }
 
     public void GetNewLetters () {
-        Random r = new Random();
+        
         for (int i = 0; i < 20; i++) {
             if (lettersUsed[i]) {
                 double randomValue = r.NextDouble();

@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
+using Random=System.Random;
 using UnityEngine;
  using UnityEngine.UI;
 using UnityEditor;
@@ -17,7 +18,7 @@ public class Main : MonoBehaviour {
     private string[] letters;
     private int round;
     private float timer;
-
+	private bool gameOver;
 
 
 	void Start () {
@@ -26,7 +27,10 @@ public class Main : MonoBehaviour {
         turn = -1;
         round = 1;
         timer = -1.0f;
+		gameOver = false;
         spriteMap = GetSpriteMap();
+
+		Random r = new Random();
 
         string[] words = System.IO.File.ReadAllLines(@"Assets/data/dictionary.txt");
         string[] lf = System.IO.File.ReadAllLines(@"Assets/data/letters.txt");
@@ -41,8 +45,8 @@ public class Main : MonoBehaviour {
             total_freq += letter_freqs[i];
         }
 
-        player1 = new Player(letters, letter_freqs, total_freq, words);
-        player2 = new Player(letters, letter_freqs, total_freq, words);
+        player1 = new Player(letters, letter_freqs, total_freq, words, r);
+        player2 = new Player(letters, letter_freqs, total_freq, words, r);
 
         UpdateVisuals(true, false);
 
@@ -63,16 +67,31 @@ public class Main : MonoBehaviour {
             timer -= Time.deltaTime;
         }
 
-        if (timer <= 0 && turn != -1 && (player1.played || player2.played)) {
+        if (timer <= 0 && turn != -1) {
+			timer = -1;
+
             if (turn == 1) {
+				if (!player2.played) {
+					turn = 2;
+					timer = 11;
+				} else {
+					turn = -1;
+					timer = -1;
+				}
                 player1.played = true;
                 Debug.Log("Player 1 Timed out!");
             } else {
+				if (!player1.played) {
+					turn = 1;
+					timer = 11;
+				} else {
+					turn = -1;
+					timer = -1;
+				}
                 player2.played = true;
                 Debug.Log("Player 2 Timed out!");
             }
-            timer = -1;
-            turn = -1;
+           
         }
 
 
@@ -108,6 +127,9 @@ public class Main : MonoBehaviour {
             round += 1;
 
             if (player1.GetScore() == 3 || player2.GetScore() == 3) {
+
+				gameOver = true;
+
                 if (player1.GetScore() > player2.GetScore()) {
                     Debug.Log("Player 1 won the game!");
                 } else if (player1.GetScore() < player2.GetScore()) {
@@ -118,82 +140,83 @@ public class Main : MonoBehaviour {
             }
         }
 
-        if (turn == -1) {
-            if (Input.GetKeyDown("left shift") && !player1.played) {
-                turn = 1;
-                if (!player2.played) {
-                    timer = 10;
-                }
-                Debug.Log("Player 1's Turn");
-            } else if (Input.GetKeyDown("right shift") && !player2.played) {
-                turn = 2;
-                if (!player1.played) {
-                    timer = 10;
-                }
-                Debug.Log("Player 2's Turn");
-            }
-        } else {
-            if (Input.GetKeyDown("return")) {
-                if (turn  == 1) {
-                    player1.played = true;
-                    Debug.Log("Player 1's Turn Ended");
+		if (!gameOver) {
+			if (turn == -1) {
+				if (Input.GetKeyDown ("left shift") && !player1.played) {
+					turn = 1;
+					if (!player2.played) {
+						timer = 11;
+					}
+					Debug.Log ("Player 1's Turn");
+				} else if (Input.GetKeyDown ("right shift") && !player2.played) {
+					turn = 2;
+					if (!player1.played) {
+						timer = 11;
+					}
+					Debug.Log ("Player 2's Turn");
+				}
+			} else {
+				if (Input.GetKeyDown ("return")) {
+					if (turn == 1) {
+						player1.played = true;
+						Debug.Log ("Player 1's Turn Ended");
 
-                    if (!player2.played) {
-                        turn = 2;
-                        timer = 10;
-                    } else {
-                        timer = -1;
-                        turn = -1;
-                    }
-                } else {
-                    player2.played = true;
-                    Debug.Log("Player 2's Turn Ended");
+						if (!player2.played) {
+							turn = 2;
+							timer = 11;
+						} else {
+							timer = -1;
+							turn = -1;
+						}
+					} else {
+						player2.played = true;
+						Debug.Log ("Player 2's Turn Ended");
 
-                    if (!player1.played) {
-                        turn = 1;
-                        timer = 10;
-                    } else {
-                        timer = -1;
-                        turn = -1;
-                    }
-                }
+						if (!player1.played) {
+							turn = 1;
+							timer = 11;
+						} else {
+							timer = -1;
+							turn = -1;
+						}
+					}
 
-            } else if (Input.GetKeyDown("backspace")) {
-                if (turn  == 1) {
-                    int index = player1.RemoveLastLetter();
-                    if (index != -1){
-                        GameObject.Find(String.Concat("1-", index+1)).GetComponent<SpriteRenderer>().color = new Color(1.0f, 1.0f, 1.0f, 1.0f);
-                    }
-                    Debug.Log(player1.GetWord());
-                } else {
-                    int index = player2.RemoveLastLetter();
-                    if (index != -1){
-                        GameObject.Find(String.Concat("2-", index+1)).GetComponent<SpriteRenderer>().color = new Color(1.0f, 1.0f, 1.0f, 1.0f);
-                    }
-                    Debug.Log(player2.GetWord());
-                }
-            }
-        }
+				} else if (Input.GetKeyDown ("backspace")) {
+					if (turn == 1) {
+						int index = player1.RemoveLastLetter ();
+						if (index != -1) {
+							GameObject.Find (String.Concat ("1-", index + 1)).GetComponent<SpriteRenderer> ().color = new Color (1.0f, 1.0f, 1.0f, 1.0f);
+						}
+						Debug.Log (player1.GetWord ());
+					} else {
+						int index = player2.RemoveLastLetter ();
+						if (index != -1) {
+							GameObject.Find (String.Concat ("2-", index + 1)).GetComponent<SpriteRenderer> ().color = new Color (1.0f, 1.0f, 1.0f, 1.0f);
+						}
+						Debug.Log (player2.GetWord ());
+					}
+				}
 
-        if (turn != -1) {
-            for (int i = 0; i < letters.Length; i++) {
-                if (Input.GetKeyDown(letters[i].ToLower())) {
-                    if (turn == 1) {
-                        if (player1.CanAddLetter(letters[i])) {
-                            int index = player1.AddLetter(letters[i]);
-                            GameObject.Find(String.Concat("1-", index+1)).GetComponent<SpriteRenderer>().color = new Color(94.0f/255.0f, 90.0f/255.0f, 90.0f/255.0f, 1.0f);
-                            Debug.Log(player1.GetWord());
-                        }
-                    } else {
-                        if (player2.CanAddLetter(letters[i])) {
-                            int index = player2.AddLetter(letters[i]);
-                            GameObject.Find(String.Concat("2-", index+1)).GetComponent<SpriteRenderer>().color = new Color(94.0f/255.0f, 90.0f/255.0f, 90.0f/255.0f, 1.0f);
-                            Debug.Log(player2.GetWord());
-                        }
-                    }
-                }
-            }
-        }
+				for (int i = 0; i < letters.Length; i++) {
+					if (Input.GetKeyDown(letters[i].ToLower())) {
+						if (turn == 1) {
+							if (player1.CanAddLetter(letters[i])) {
+								int index = player1.AddLetter(letters[i]);
+								GameObject.Find(String.Concat("1-", index+1)).GetComponent<SpriteRenderer>().color = new Color(94.0f/255.0f, 90.0f/255.0f, 90.0f/255.0f, 1.0f);
+								Debug.Log(player1.GetWord());
+							}
+						} else {
+							if (player2.CanAddLetter(letters[i])) {
+								int index = player2.AddLetter(letters[i]);
+								GameObject.Find(String.Concat("2-", index+1)).GetComponent<SpriteRenderer>().color = new Color(94.0f/255.0f, 90.0f/255.0f, 90.0f/255.0f, 1.0f);
+								Debug.Log(player2.GetWord());
+							}
+						}
+					}
+				}
+			}
+		}
+
 
 	}
 
@@ -236,6 +259,17 @@ public class Main : MonoBehaviour {
         } else {
             GameObject.Find("Timer").GetComponent<Text>().text = "";
         }
+
+		if (turn == -1) {
+			GameObject.Find("Player1-Turn").GetComponent<Text>().text = "Turn: ";
+			GameObject.Find("Player2-Turn").GetComponent<Text>().text = "Turn: ";
+		} else if (turn == 1) {
+			GameObject.Find("Player1-Turn").GetComponent<Text>().text = "Turn: o";
+			GameObject.Find("Player2-Turn").GetComponent<Text>().text = "Turn: ";
+		} else {
+			GameObject.Find("Player1-Turn").GetComponent<Text>().text = "Turn: ";
+			GameObject.Find("Player2-Turn").GetComponent<Text>().text = "Turn: o";
+		}
 
     }
 
