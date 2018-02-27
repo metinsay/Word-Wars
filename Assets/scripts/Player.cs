@@ -3,7 +3,6 @@ using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEditor;
 using Random=System.Random;
 
 
@@ -17,7 +16,7 @@ public class Player {
     private string[] words;
     public bool played;
     public string[] letters;
-    private bool[] lettersUsed;
+    public bool[] lettersUsed;
 	private Random r;
 
 	public Player (string[] pos_letters, float[] letter_freqs, float total_freq, string[] words, Random r) {
@@ -141,6 +140,7 @@ public class Player {
     }
 
     public bool CanAddLetter (string letter) {
+		Debug.Log (letter);
         Dictionary<string, int> pos_map = new Dictionary<string, int>();
         Dictionary<string, int> word_map = new Dictionary<string, int>();
         for (int i = 0; i < letters.Length; i++) {
